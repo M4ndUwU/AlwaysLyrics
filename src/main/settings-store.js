@@ -39,8 +39,8 @@ const DEFAULT = {
   overlayLyricBgColor: '#1a1f2f',
   /** 제목·가수 텍스트 RGB 애니메이션 */
   overlayHeadTextRgb: false,
-  /** 동기 가사 텍스트 RGB 애니메이션 */
-  overlayLyricTextRgb: false,
+  /** 제목·가수 RGB 애니메이션 속도(초) */
+  overlayHeadRgbSpeedSec: 3.2,
   /** 트랙별 동기 가사 시간 오프셋(ms). 키는 Tuna 트랙 id 문자열 */
   lyricOffsetsMsByTrackId: {},
   /** 캐시 키별 원 제목/가수/트랙/오프셋 메타 */

@@ -819,6 +819,11 @@ body {
   gap: 0.5rem;
 }
 
+.rgb-speed-row {
+  margin-top: -0.2rem;
+  margin-left: 1.5rem;
+}
+
 .overlay-color-item {
   display: flex;
   flex-direction: column;
@@ -876,34 +881,50 @@ kbd {
 }
 
 .lyrics-cache-list-body {
-  display: grid;
-  gap: 0.65rem;
   max-height: 22rem;
-  overflow: auto;
+  overflow: hidden;
 }
 
-.cache-item {
-  padding: 0.8rem 0.9rem;
-  border-radius: 10px;
+.lyrics-cache-table-wrap {
   border: 1px solid #2e2e36;
+  border-radius: 10px;
   background: #121218;
+  max-height: 22rem;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
-.cache-item-current {
-  border-color: #3a5f86;
-  background: #121924;
+.lyrics-cache-table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.84rem;
 }
 
-.cache-item-label {
-  margin: 0;
-  font-size: 0.75rem;
-  color: #7e7e88;
-}
-
-.cache-item-value {
-  margin: 0.15rem 0 0.55rem;
-  font-size: 0.88rem;
+.lyrics-cache-table th,
+.lyrics-cache-table td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #24242c;
   color: #d6d6de;
-  line-height: 1.45;
   word-break: break-word;
+}
+
+.lyrics-cache-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-weight: 600;
+  color: #9fa8b5;
+  background: #191922;
+}
+
+.lyrics-cache-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.lyrics-cache-row.is-current td {
+  background: #182338;
+  color: #dbeeff;
 }

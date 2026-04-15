@@ -403,6 +403,7 @@ function getOverlayStylePayload() {
   const head = Number(s.overlayHeadFontPx);
   const lyric = Number(s.overlayLyricFontPx);
   const ho = Number(s.overlayHoverOpacity);
+  const headRgbSpeed = Number(s.overlayHeadRgbSpeedSec);
   return {
     overlayHeadFontPx: Number.isFinite(head) ? Math.min(40, Math.max(10, Math.round(head))) : 17,
     overlayLyricFontPx: Number.isFinite(lyric) ? Math.min(40, Math.max(10, Math.round(lyric))) : 16,
@@ -414,7 +415,9 @@ function getOverlayStylePayload() {
     overlayLyricTextColor: normalizeHexColor(s.overlayLyricTextColor, '#ffffff'),
     overlayLyricBgColor: normalizeHexColor(s.overlayLyricBgColor, '#1a1f2f'),
     overlayHeadTextRgb: s.overlayHeadTextRgb === true,
-    overlayLyricTextRgb: s.overlayLyricTextRgb === true,
+    overlayHeadRgbSpeedSec: Number.isFinite(headRgbSpeed)
+      ? Math.min(8, Math.max(0.4, headRgbSpeed))
+      : 3.2,
   };
 }
 
@@ -734,7 +737,7 @@ app.whenReady().then(async () => {
       'overlayLyricTextColor',
       'overlayLyricBgColor',
       'overlayHeadTextRgb',
-      'overlayLyricTextRgb',
+      'overlayHeadRgbSpeedSec',
     ];
     if (partial && overlayStyleKeys.some((k) => Object.prototype.hasOwnProperty.call(partial, k))) {
       broadcastOverlayStyle();

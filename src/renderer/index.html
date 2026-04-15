@@ -225,10 +225,13 @@
               <input type="checkbox" id="overlay-rgb-head" />
               제목·가수 텍스트 RGB 반짝임
             </label>
-            <label class="opt-label">
-              <input type="checkbox" id="overlay-rgb-lyric" />
-              동기 가사 텍스트 RGB 반짝임
-            </label>
+            <div class="field-row rgb-speed-row">
+              <label for="overlay-rgb-head-speed" class="field-label">제목·가수 RGB 속도</label>
+              <div class="overlay-hover-wrap">
+                <input type="range" id="overlay-rgb-head-speed" class="offset-range" min="0.4" max="8" step="0.1" value="3.2" />
+                <span id="overlay-rgb-head-speed-label" class="offset-label">3.2s</span>
+              </div>
+            </div>
           </div>
           <p class="hint small">패널 배경은 선택한 색을 기준으로 약한 그라데이션을 씁니다.</p>
         </div>

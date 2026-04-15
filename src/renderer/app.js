@@ -142,14 +142,19 @@ async function init() {
     const cl = $('overlay-color-lyric');
     const clbg = $('overlay-color-lyric-bg');
     const rgbHead = $('overlay-rgb-head');
-    const rgbLyric = $('overlay-rgb-lyric');
+    const rgbHeadSpeed = $('overlay-rgb-head-speed');
+    const rgbHeadSpeedLabel = $('overlay-rgb-head-speed-label');
     if (cbg && typeof s.overlayPanelBgColor === 'string') cbg.value = s.overlayPanelBgColor;
     if (ch && typeof s.overlayHeadTextColor === 'string') ch.value = s.overlayHeadTextColor;
     if (chbg && typeof s.overlayHeadBgColor === 'string') chbg.value = s.overlayHeadBgColor;
     if (cl && typeof s.overlayLyricTextColor === 'string') cl.value = s.overlayLyricTextColor;
     if (clbg && typeof s.overlayLyricBgColor === 'string') clbg.value = s.overlayLyricBgColor;
     if (rgbHead) rgbHead.checked = !!s.overlayHeadTextRgb;
-    if (rgbLyric) rgbLyric.checked = !!s.overlayLyricTextRgb;
+    const hs = Number(s.overlayHeadRgbSpeedSec);
+    if (rgbHeadSpeed && Number.isFinite(hs)) {
+      rgbHeadSpeed.value = String(Math.min(8, Math.max(0.4, hs)));
+      if (rgbHeadSpeedLabel) rgbHeadSpeedLabel.textContent = `${Number(rgbHeadSpeed.value).toFixed(1)}s`;
+    }
     updateAnchorButtons(s.overlayAnchor || 'bottom');
   }
 
@@ -297,10 +302,23 @@ async function init() {
       const c = /** @type {HTMLInputElement} */ (e.target).checked;
       savePartial({ overlayHeadTextRgb: c });
     });
-    $('overlay-rgb-lyric')?.addEventListener('change', (e) => {
-      const c = /** @type {HTMLInputElement} */ (e.target).checked;
-      savePartial({ overlayLyricTextRgb: c });
-    });
+
+    const wireRgbSpeed = (id, labelId, key) => {
+      const rangeEl = $(id);
+      const labelEl = $(labelId);
+      if (!rangeEl) return;
+      let t = null;
+      rangeEl.addEventListener('input', () => {
+        if (labelEl) labelEl.textContent = `${Number(rangeEl.value).toFixed(1)}s`;
+        clearTimeout(t);
+        t = setTimeout(() => {
+          const v = Number(rangeEl.value);
+          if (!Number.isFinite(v)) return;
+          savePartial({ [key]: Math.min(8, Math.max(0.4, v)) });
+        }, 140);
+      });
+    };
+    wireRgbSpeed('overlay-rgb-head-speed', 'overlay-rgb-head-speed-label', 'overlayHeadRgbSpeedSec');
   }
 
   function wireSettings() {
@@ -531,34 +549,50 @@ async function init() {
     const emptyEl = $('lyrics-cache-list-empty');
     const bodyEl = $('lyrics-cache-list-body');
     if (!emptyEl || !bodyEl || typeof api.getLyricsCacheList !== 'function') return;
+    const emptyDefault = '저장된 가사 캐시가 없습니다.';
     try {
       const data = await api.getLyricsCacheList({ limit: 200 });
       const entries = Array.isArray(data?.entries) ? data.entries : [];
       if (!entries.length) {
+        emptyEl.textContent = emptyDefault;
         emptyEl.classList.remove('hidden');
         bodyEl.classList.add('hidden');
         bodyEl.innerHTML = '';
         return;
       }
+      emptyEl.textContent = emptyDefault;
       emptyEl.classList.add('hidden');
       bodyEl.classList.remove('hidden');
-      bodyEl.innerHTML = entries
+      const rows = entries
         .map((entry) => {
-          const searchLine = `${entry.searchTitle || '—'} — ${entry.searchArtist || '—'}`;
-          const originalLine = entry.originalTitle
-            ? `${entry.originalTitle} — ${entry.originalArtist || '—'}`
-            : '매칭된 원 제목 정보 없음';
+          const searchTitle = entry.searchTitle || '—';
+          const searchArtist = entry.searchArtist || '—';
+          const originalTitle = entry.originalTitle || '매칭된 원 제목 정보 없음';
+          const originalArtist = entry.originalTitle ? entry.originalArtist || '—' : '—';
           const offsetLine = `${Math.round(Number(entry.offsetMs) || 0)} ms`;
-          return `<div class="cache-item${entry.isCurrent ? ' cache-item-current' : ''}">
-            <p class="cache-item-label">검색된 제목</p>
-            <p class="cache-item-value">${escapeHtml(searchLine)}</p>
-            <p class="cache-item-label">원 제목 (YouTube Music)</p>
-            <p class="cache-item-value">${escapeHtml(originalLine)}</p>
-            <p class="cache-item-label">설정 오프셋</p>
-            <p class="cache-item-value">${escapeHtml(offsetLine)}</p>
-          </div>`;
+          return `<tr class="lyrics-cache-row${entry.isCurrent ? ' is-current' : ''}">
+            <td>${escapeHtml(searchTitle)}</td>
+            <td>${escapeHtml(searchArtist)}</td>
+            <td>${escapeHtml(originalTitle)}</td>
+            <td>${escapeHtml(originalArtist)}</td>
+            <td>${escapeHtml(offsetLine)}</td>
+          </tr>`;
         })
         .join('');
+      bodyEl.innerHTML = `<div class="lyrics-cache-table-wrap">
+        <table class="lyrics-cache-table" aria-label="가사 캐시 목록">
+          <thead>
+            <tr>
+              <th scope="col">검색 제목</th>
+              <th scope="col">검색 가수</th>
+              <th scope="col">원 제목</th>
+              <th scope="col">원 가수</th>
+              <th scope="col">오프셋</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
     } catch {
       emptyEl.classList.remove('hidden');
       bodyEl.classList.add('hidden');

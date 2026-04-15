@@ -197,12 +197,7 @@ body {
 .overlay-rgb-head .overlay-artist,
 .overlay-rgb-head .overlay-time,
 .overlay-rgb-head .overlay-match-meta {
-  animation: overlay-rgb-pulse 3.2s linear infinite;
-}
-
-.overlay-rgb-lyric .line,
-.overlay-rgb-lyric .line-extra {
-  animation: overlay-rgb-pulse 2.8s linear infinite;
+  animation: overlay-rgb-pulse var(--overlay-rgb-head-speed, 3.2s) linear infinite;
 }
 
 @keyframes overlay-rgb-pulse {

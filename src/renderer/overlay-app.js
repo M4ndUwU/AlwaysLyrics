@@ -52,11 +52,15 @@ function applyOverlayStylePayload(p) {
   root.style.setProperty('--overlay-lyric-bg', hexToRgba(lyricBg, 0.38));
   root.style.setProperty('--overlay-lyric-active-bg', hexToRgba(lyricBg, 0.62));
   root.style.setProperty('--overlay-lyric-active-border', hexToRgba(lyricC, 0.35));
+  const headRgbSpeed = Number(p.overlayHeadRgbSpeedSec);
+  root.style.setProperty(
+    '--overlay-rgb-head-speed',
+    `${Number.isFinite(headRgbSpeed) ? Math.min(8, Math.max(0.4, headRgbSpeed)) : 3.2}s`
+  );
   if (rootEl) {
     const fill = p.overlayFillWindowBackground !== false;
     rootEl.classList.toggle('overlay-root--fill', fill);
     rootEl.classList.toggle('overlay-rgb-head', p.overlayHeadTextRgb === true);
-    rootEl.classList.toggle('overlay-rgb-lyric', p.overlayLyricTextRgb === true);
   }
 }
 
