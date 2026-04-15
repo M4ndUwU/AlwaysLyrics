@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" />
+  <title>AlwaysLyrics 가사</title>
+  <link rel="stylesheet" href="overlay.css" />
+</head>
+<body>
+  <div id="overlay-root" class="overlay-root">
+    <div class="overlay-head">
+      <div class="overlay-cover-wrap">
+        <img id="overlay-cover" class="overlay-cover hidden" alt="" />
+      </div>
+      <div class="overlay-head-text">
+        <div class="overlay-title-row">
+          <span id="overlay-title" class="overlay-title"></span>
+          <span id="overlay-time" class="overlay-time" aria-hidden="true"></span>
+        </div>
+        <div class="overlay-artist-row">
+          <span id="overlay-artist" class="overlay-artist"></span>
+          <span id="overlay-match-meta" class="overlay-match-meta hidden"></span>
+        </div>
+      </div>
+    </div>
+    <div id="lines" class="lines"></div>
+  </div>
+  <script src="overlay-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" />
+  <title>AlwaysLyrics</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="header">
+      <div class="brand">
+        <h1>AlwaysLyrics</h1>
+        <p class="tagline">YouTube Music · Tuna · MusixMatch 동기 가사</p>
+      </div>
+    </header>
+
+    <nav class="tabs-nav" role="tablist" aria-label="설정 구역">
+      <button type="button" class="tab-btn is-active" role="tab" id="tab-btn-connect" aria-selected="true" aria-controls="tab-connect" data-tab="connect">연결</button>
+      <button type="button" class="tab-btn" role="tab" id="tab-btn-lyrics" aria-selected="false" aria-controls="tab-lyrics" data-tab="lyrics">가사</button>
+      <button type="button" class="tab-btn" role="tab" id="tab-btn-overlay" aria-selected="false" aria-controls="tab-overlay" data-tab="overlay">오버레이</button>
+      <button type="button" class="tab-btn" role="tab" id="tab-btn-app" aria-selected="false" aria-controls="tab-app" data-tab="app">앱</button>
+    </nav>
+
+    <div id="tab-connect" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-btn-connect">
+      <p id="connect-server-error" class="connect-server-error hidden" role="alert" aria-live="polite"></p>
+
+      <section id="idle-panel" class="panel card">
+        <p class="hint muted-connect">아래 안내에 따라 Tuna를 맞춘 뒤 재생을 시작하면 곡 카드가 나타납니다.</p>
+      </section>
+
+      <section id="track-panel" class="panel card track-card hidden">
+        <div class="track-card-inner">
+          <div class="cover-wrap">
+            <img id="cover" alt="" class="cover hidden" />
+          </div>
+          <div class="track-meta">
+            <h2 id="track-title" class="title">—</h2>
+            <p id="track-artists" class="artists">—</p>
+            <p id="track-progress" class="progress">—</p>
+            <p id="track-state" class="state muted">—</p>
+            <p id="track-source-wrap" class="track-source-wrap hidden">
+              <button type="button" id="track-url-btn" class="btn-primary">재생 페이지 열기</button>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel card connect-guide">
+        <h2 class="section-title">어떻게 연결하나요?</h2>
+        <ol class="connect-steps">
+          <li><strong>YouTube Music Desktop</strong>을 실행하고 재생합니다.</li>
+          <li>OBS용 <strong>tuna-obs</strong> 플러그인을 설치·활성화해 재생 정보를 전송합니다.</li>
+          <li>tuna 설정에서 <strong>전송 URL</strong>을 이 PC의 AlwaysLyrics 수신 주소와 같게 맞춥니다. (기본 포트 <strong>1608</strong>, 예: <code>http://127.0.0.1:1608/</code>)</li>
+          <li>같은 포트를 쓰는 다른 프로그램이 있으면 충돌할 수 있으니 한쪽만 실행하거나 포트를 바꿉니다.</li>
+          <li>연결되면 위 카드에 앨범 커버·제목·진행 시간이 표시되고, MusixMatch로 동기 가사를 불러옵니다.</li>
+        </ol>
+      </section>
+    </div>
+
+    <div id="tab-lyrics" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-lyrics">
+      <p id="lyric-tab-status" class="lyric-tab-status hidden" role="status" aria-live="polite"></p>
+
+      <section class="panel card lyrics-card">
+        <h2 class="section-title">MusixMatch 가사 옵션</h2>
+        <p class="hint small">동기 가사 검색은 MusixMatch만 사용합니다. 아래는 검색·표시에 덧붙는 처리입니다.</p>
+        <ul class="settings-list">
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-korean-pron" />
+              일본어 가사에 한글 발음(후리가나) 보조
+            </label>
+          </li>
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-extract-original" />
+              「歌ってみた」 제목에서 원곡 제목·아티스트 추출 후 검색
+            </label>
+          </li>
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-translation" />
+              한국어 줄이 없을 때 일본어→한국어 번역 추가
+            </label>
+          </li>
+        </ul>
+        <div class="field-row">
+          <label for="opt-language" class="field-label">MusixMatch·번역 기준 언어</label>
+          <select id="opt-language" class="field-select">
+            <option value="ko">한국어 (ko)</option>
+            <option value="en">English (en)</option>
+            <option value="ja">日本語 (ja)</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label for="musixmatch-token" class="field-label">MusixMatch 사용자 토큰 (선택)</label>
+          <input type="password" id="musixmatch-token" class="field-input" placeholder="비워 두면 자동으로 받아옵니다" autocomplete="off" />
+        </div>
+      </section>
+
+      <section class="panel card lyrics-card" aria-labelledby="lyrics-current-heading">
+        <h2 id="lyrics-current-heading" class="section-title">현재 곡 · 가사 캐시</h2>
+        <p class="hint small">재생 중인 곡에 대해서만 캐시·오프셋·수동 검색을 다룹니다.</p>
+        <p id="lyrics-cache-size" class="lyrics-cache-size" aria-live="polite">로컬 캐시 용량: —</p>
+
+        <div id="lyrics-current-empty" class="lyrics-current-placeholder">재생 중인 곡이 없습니다. YouTube Music에서 재생을 시작해 주세요.</div>
+
+        <div id="lyrics-current-body" class="lyrics-current-body hidden">
+          <div class="lyrics-current-track-block">
+            <p class="lyrics-current-label">지금 재생 (Tuna)</p>
+            <p id="lyrics-current-track-line" class="lyrics-current-track-line">—</p>
+          </div>
+
+          <div class="lyrics-preview-toolbar">
+            <button type="button" id="lyrics-preview-toggle" class="btn-ghost" aria-expanded="false" aria-controls="lyrics-preview-collapsible">가사 미리보기 펼치기</button>
+          </div>
+          <div id="lyrics-preview-collapsible" class="lyrics-preview-collapsible hidden">
+            <div class="lyrics-preview-block">
+              <p class="lyrics-current-label">캐시된 동기 가사 미리보기</p>
+              <pre id="lyrics-cache-preview" class="lyrics-preview-box empty" aria-live="polite">캐시 없음</pre>
+            </div>
+          </div>
+
+          <div class="field-row lyric-offset-row">
+            <label for="lyric-offset-ms" class="field-label">동기 가사 시간 오프셋 (ms)</label>
+            <div class="offset-control offset-control-with-arrows">
+              <button type="button" class="btn-ghost offset-arrow" id="lyric-offset-minus" aria-label="50ms 감소">◀</button>
+              <input type="range" id="lyric-offset-ms" class="offset-range" min="-8000" max="15000" step="50" value="0" />
+              <button type="button" class="btn-ghost offset-arrow" id="lyric-offset-plus" aria-label="50ms 증가">▶</button>
+              <span id="lyric-offset-label" class="offset-label">0 ms</span>
+            </div>
+            <p class="hint small">슬라이더나 ◀ ▶에 포커스가 있을 때 <kbd>←</kbd> <kbd>→</kbd> 키로 50ms씩 조절합니다. 가사가 음악보다 빠르면 음수, 느리면 양수로 맞춥니다.</p>
+          </div>
+
+          <div class="lyrics-cache-actions-row">
+            <button type="button" id="lyric-cache-clear-current" class="btn-ghost danger">이 곡 캐시만 삭제 후 다시 불러오기</button>
+            <button type="button" id="lyrics-current-refresh" class="btn-ghost">정보 새로고침</button>
+          </div>
+
+          <div class="manual-search-block">
+            <h3 class="subsection-title">수동으로 제목·가수 검색</h3>
+            <p class="hint small">자동 검색이 어긋날 때 MusixMatch에 넣을 제목·가수를 직접 적용합니다.</p>
+            <div class="field-row field-row-split">
+              <div>
+                <label for="manual-search-title" class="field-label">제목</label>
+                <input type="text" id="manual-search-title" class="field-input" placeholder="제목" autocomplete="off" />
+              </div>
+              <div>
+                <label for="manual-search-artist" class="field-label">가수</label>
+                <input type="text" id="manual-search-artist" class="field-input" placeholder="가수" autocomplete="off" />
+              </div>
+            </div>
+            <div class="manual-search-apply-wrap">
+              <button type="button" id="manual-search-apply" class="btn-primary">이 검색으로 가사 적용</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel card lyrics-card" aria-labelledby="lyrics-cache-list-heading">
+        <h2 id="lyrics-cache-list-heading" class="section-title">가사 캐시 목록</h2>
+        <p class="hint small">검색된 제목·가수와 현재 YouTube Music 원 제목, 트랙별 오프셋을 함께 표시합니다.</p>
+        <div class="lyrics-cache-list-head">
+          <button type="button" id="lyrics-cache-list-refresh" class="btn-ghost">목록 새로고침</button>
+        </div>
+        <div id="lyrics-cache-list-empty" class="lyrics-current-placeholder">저장된 가사 캐시가 없습니다.</div>
+        <div id="lyrics-cache-list-body" class="lyrics-cache-list-body hidden"></div>
+      </section>
+    </div>
+
+    <div id="tab-overlay" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-overlay">
+      <section class="panel card">
+        <h2 class="section-title">화면 오버레이</h2>
+        <ul class="settings-list">
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-overlay" />
+              화면에 가사 오버레이 표시
+            </label>
+          </li>
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-overlay-fill-bg" />
+              창 크기만큼 패널 배경 채우기 (끄면 가사 줄 배경만 보입니다)
+            </label>
+          </li>
+        </ul>
+
+        <div class="field-row overlay-hover-row">
+          <label for="overlay-hover-opacity" class="field-label">마우스 올렸을 때 불투명도</label>
+          <div class="overlay-hover-wrap">
+            <input type="range" id="overlay-hover-opacity" class="offset-range" min="0.25" max="1" step="0.01" value="0.78" />
+            <span id="overlay-hover-label" class="offset-label">0.78</span>
+          </div>
+          <p class="hint small">오버레이 위에 커서가 있을 때 창 전체 투명도입니다. (낮을수록 더 투명)</p>
+        </div>
+
+        <div class="field-row overlay-colors-row">
+          <span class="field-label">색상</span>
+          <div class="overlay-color-grid">
+            <label class="overlay-color-item">
+              <span class="overlay-color-label">패널 배경</span>
+              <input type="color" id="overlay-color-bg" value="#0c0e16" title="패널 배경 기준색" />
+            </label>
+            <label class="overlay-color-item">
+              <span class="overlay-color-label">제목·가수</span>
+              <input type="color" id="overlay-color-head" value="#f2f2f2" title="제목·가수·시간" />
+            </label>
+            <label class="overlay-color-item">
+              <span class="overlay-color-label">제목·가수 배경</span>
+              <input type="color" id="overlay-color-head-bg" value="#1a2234" title="제목·가수 카드 배경" />
+            </label>
+            <label class="overlay-color-item">
+              <span class="overlay-color-label">동기 가사</span>
+              <input type="color" id="overlay-color-lyric" value="#ffffff" title="동기 가사 본문" />
+            </label>
+            <label class="overlay-color-item">
+              <span class="overlay-color-label">동기 가사 배경</span>
+              <input type="color" id="overlay-color-lyric-bg" value="#1a1f2f" title="동기 가사 줄 배경" />
+            </label>
+          </div>
+          <div class="overlay-rgb-options">
+            <label class="opt-label">
+              <input type="checkbox" id="overlay-rgb-head" />
+              제목·가수 텍스트 RGB 반짝임
+            </label>
+            <label class="opt-label">
+              <input type="checkbox" id="overlay-rgb-lyric" />
+              동기 가사 텍스트 RGB 반짝임
+            </label>
+          </div>
+          <p class="hint small">패널 배경은 선택한 색을 기준으로 약한 그라데이션을 씁니다.</p>
+        </div>
+
+        <div class="overlay-geom-block">
+          <h3 class="subsection-title">모니터·위치·크기</h3>
+          <p class="hint small">모니터, 모서리, 여백, 창 크기를 지정합니다.</p>
+          <div class="field-row">
+            <div class="field-row-head">
+              <label for="overlay-display" class="field-label">가사를 표시할 모니터</label>
+              <button type="button" id="overlay-refresh-displays" class="btn-ghost">목록 새로고침</button>
+            </div>
+            <select id="overlay-display" class="field-select"></select>
+          </div>
+          <div class="field-row">
+            <span class="field-label">모서리 기준 위치</span>
+            <div class="anchor-grid" id="overlay-anchor-grid" role="group" aria-label="오버레이 앵커">
+              <button type="button" class="anchor-btn" data-anchor="top-left" title="왼쪽 상단">↖</button>
+              <button type="button" class="anchor-btn" data-anchor="top" title="상단">↑</button>
+              <button type="button" class="anchor-btn" data-anchor="top-right" title="오른쪽 상단">↗</button>
+              <button type="button" class="anchor-btn" data-anchor="left" title="왼쪽">←</button>
+              <button type="button" class="anchor-btn" data-anchor="center" title="중앙">◎</button>
+              <button type="button" class="anchor-btn" data-anchor="right" title="오른쪽">→</button>
+              <button type="button" class="anchor-btn" data-anchor="bottom-left" title="왼쪽 하단">↙</button>
+              <button type="button" class="anchor-btn" data-anchor="bottom" title="하단">↓</button>
+              <button type="button" class="anchor-btn" data-anchor="bottom-right" title="오른쪽 하단">↘</button>
+            </div>
+          </div>
+          <div class="field-row field-row-split">
+            <div>
+              <label for="overlay-width" class="field-label">너비 (px)</label>
+              <input type="number" id="overlay-width" class="field-input field-input-num" min="200" max="2000" step="10" />
+            </div>
+            <div>
+              <label for="overlay-height" class="field-label">높이 (px)</label>
+              <input type="number" id="overlay-height" class="field-input field-input-num" min="120" max="1200" step="10" />
+            </div>
+          </div>
+          <p class="hint small">여백은 선택한 모니터 작업 영역 기준입니다.</p>
+          <div class="field-row field-row-split field-row-margins">
+            <div>
+              <label for="overlay-mt" class="field-label">위</label>
+              <input type="number" id="overlay-mt" class="field-input field-input-num" min="-200" max="500" step="1" />
+            </div>
+            <div>
+              <label for="overlay-ml" class="field-label">왼쪽</label>
+              <input type="number" id="overlay-ml" class="field-input field-input-num" min="-200" max="500" step="1" />
+            </div>
+            <div>
+              <label for="overlay-mr" class="field-label">오른쪽</label>
+              <input type="number" id="overlay-mr" class="field-input field-input-num" min="-200" max="500" step="1" />
+            </div>
+            <div>
+              <label for="overlay-mb" class="field-label">아래</label>
+              <input type="number" id="overlay-mb" class="field-input field-input-num" min="-200" max="500" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay-font-block">
+          <h3 class="subsection-title">오버레이 글자 크기</h3>
+          <p class="hint small">재생 중 표시(제목·가수)와 동기 가사 줄 크기를 각각 조절합니다.</p>
+          <div class="field-row field-row-split">
+            <div>
+              <label for="overlay-head-font" class="field-label">제목·가수 (px)</label>
+              <input type="number" id="overlay-head-font" class="field-input field-input-num" min="10" max="40" step="1" />
+            </div>
+            <div>
+              <label for="overlay-lyric-font" class="field-label">동기 가사 (px)</label>
+              <input type="number" id="overlay-lyric-font" class="field-input field-input-num" min="10" max="40" step="1" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="tab-app" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-app">
+      <section class="panel card app-card">
+        <h2 class="section-title">실행 방식</h2>
+        <ul class="settings-list">
+          <li>
+            <label class="opt-label">
+              <input type="checkbox" id="opt-tray" />
+              창을 닫을 때 종료 대신 트레이로 최소화
+            </label>
+          </li>
+        </ul>
+      </section>
+      <footer class="footer-opt card app-footer">
+        <label class="startup-label">
+          <input type="checkbox" id="startup-login" />
+          Windows 시작 시 AlwaysLyrics 실행
+        </label>
+      </footer>
+      <section class="panel card app-credits">
+        <h2 class="section-title">제작 · 연락</h2>
+        <p class="credits-text">
+          AlwaysLyrics는 YouTube Music Desktop + Tuna로 재생 정보를 받고, MusixMatch에서 동기 가사를 가져옵니다.
+        </p>
+        <p class="credits-links">
+          <a href="#" id="credits-github" class="credits-link" data-url="https://github.com/M4ndUWU">GitHub: M4ndUWU</a>
+        </p>
+      </section>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
