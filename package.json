@@ -1,6 +1,6 @@
 {
   "name": "alwayslyrics",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "YouTube Music 전용 데스크톱 가사 표시 — 동기 가사 검색은 MusixMatch만 사용 (AlwaysLyrics)",
   "main": "src/main/index.js",
@@ -26,6 +26,10 @@
       "output": "release"
     },
     "win": {
+      "signAndEditExecutable": false,
+      "signtoolOptions": {
+        "sign": null
+      },
       "target": [
         "nsis",
         "portable"
